@@ -39,7 +39,7 @@ const Total = ({course}) => {
   )
 }
 
-const Courses = ({courses}) => {
+const Course = ({courses}) => {
 
   return (
     <>
@@ -103,7 +103,7 @@ const App = () => {
 
   return (
     <div>
-      <Courses courses={courses} />
+      <Course courses={courses} />
     </div>
   )
 }
