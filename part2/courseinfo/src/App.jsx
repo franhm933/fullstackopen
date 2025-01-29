@@ -31,7 +31,7 @@ const Content = ({course}) => {
 
 
 const Total = ({course}) => {
-  const sum = course.parts.reduce((a, b) => a + b.exercises, 0);
+  const sum = course.parts.reduce((a, b) => a + b.exercises, 0); 
   return (
     <>
       <p>Number of exercises {sum}</p>
