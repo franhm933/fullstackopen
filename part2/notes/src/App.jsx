@@ -2,7 +2,8 @@ import { useState } from 'react'
 import Note from './components/Note'
 
 const App = ( props ) => {
-  const [notes, setNotes] = useState(props.notes)
+  const [allNotes, setAllNotes] = useState(props.notes)
+  const [notes, setNotes] = useState(allNotes)
   const [newNote, setNewNote] = useState('')
   const [showAll, setShowAll] = useState(true)
 
@@ -36,7 +37,7 @@ const App = ( props ) => {
         </button>
       </div>
       <ul>
-        {notes.map(note => 
+        {notesToShow.map(note => 
           <Note key={note.id} note={note} />
         )}
       </ul>
