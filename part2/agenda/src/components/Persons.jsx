@@ -1,6 +1,12 @@
+import Person from "./Person"
+
 const Persons = ({ persons }) => {
     return (
-        <li>{persons.name}: {persons.phone}</li>
+        <div>
+            {persons.map(person => 
+                <Person key={person.name} person={person} />
+            )}
+        </div>
     )
 }
 export default Persons

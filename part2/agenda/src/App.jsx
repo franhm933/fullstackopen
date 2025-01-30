@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import Persons from './components/Persons'
+import Filter from './components/Filter'
+import PersonForm from './components/PersonForm';
+import Header from './components/Header';
 
 const App = () => {
   const [allPersons, setAllPersons] = useState([
@@ -24,7 +27,8 @@ const App = () => {
     }
     if(handleEmptyOk()) {
       if(handleCheckNamePhone() == 'ok') {
-        setPersons(allPersons.concat(personObject))
+        setPersons(persons.concat(personObject))
+        setAllPersons(persons.concat(personObject))
         setNewName('')
         setNewPhone('')
       } else {
@@ -38,11 +42,11 @@ const App = () => {
   const handleCheckNamePhone = (event) => {
     var errorMessage = 'ok';
 
-    if((allPersons.some(allPersons => allPersons.name === newName)) && (allPersons.some(allPersons => allPersons.phone === newPhone))) {
-      errorMessage = "The contact" + newName + " with phone number " + newPhone + " is already added to phonebook"
-    } else if(allPersons.some(allPersons => allPersons.name === newName)) {
+    if((persons.some(persons => persons.name === newName)) && (persons.some(persons => persons.phone === newPhone))) {
+      errorMessage = "The contact " + newName + " with phone number " + newPhone + " is already added to phonebook"
+    } else if(persons.some(persons => persons.name === newName)) {
       errorMessage = newName + " is already added to phonebook"
-    } else if(allPersons.some(allPersons => allPersons.phone === newPhone)) {
+    } else if(persons.some(persons => persons.phone === newPhone)) {
       errorMessage = newPhone + " is already added to phonebook"
     }
     return errorMessage;
@@ -68,7 +72,6 @@ const App = () => {
   const handleSearchChange = (event) => {
     const searchValue = event.target.value.toLowerCase();
     setNewSearch(searchValue);
-
     if (searchValue === '') {
       setPersons(allPersons); // Restaurar lista original si se borra el input
     } else {
@@ -83,38 +86,12 @@ const App = () => {
 
   return (
     <div>
-      {persons.name}
-      <h2>Phonebook</h2>
-      <div>
-        filter shown with 
-        <input
-        value={newSearch}
-        onChange={handleSearchChange}
-      />
-      </div>
-      <h2>add a new </h2>
-      <form onSubmit={addName}>
-        <div>
-          name:
-          <input
-          value={newName}
-          onChange={handleNameChange}
-        />
-        <br/>
-        phone:
-          <input
-          value={newPhone}
-          onChange={handlePhoneChange}
-        />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-      <h2>Numbers</h2>
-      {persons.map(person => 
-        <Persons key={person.name} persons={person} />
-      )}
+      <Header text='Phonebook'/>
+      <Filter search={newSearch} handle={handleSearchChange}/>
+      <Header text='Add a new'/>
+      <PersonForm submit={addName} nameVal={newName} nameHandle={handleNameChange} phoneVal={newPhone} phoneHandle={handlePhoneChange} />
+      <Header text='Numbers'/>
+      <Persons persons={persons} />
     </div>
   )
 }
