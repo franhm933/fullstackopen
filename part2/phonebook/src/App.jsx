@@ -4,6 +4,7 @@ import Persons from './components/Persons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm';
 import Header from './components/Header';
+import personService from './services/person.js'
 
 const App = () => {
   const [allPersons, setAllPersons] = useState([]);
@@ -16,11 +17,11 @@ const App = () => {
 
   useEffect(() => {
     console.log('effect')
-    axios
-    .get('http://localhost:3001/persons')
-    .then(response => {
-      setAllPersons(response.data)
-      setPersons(response.data)
+    personService
+    .getAll()
+    .then(initialPersons => {
+      setAllPersons(initialPersons)
+      setPersons(initialPersons)
     })
   }, [])
   console.log('render', persons.length, 'persons')
@@ -34,10 +35,33 @@ const App = () => {
     }
     if(handleEmptyOk()) {
       if(handleCheckNamePhone() == 'ok') {
-        setPersons(persons.concat(personObject))
-        setAllPersons(persons.concat(personObject))
-        setNewName('')
-        setNewPhone('')
+        personService
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setAllPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewPhone('')
+        })
+        
+      } else if(handleCheckNamePhone() == 'updatePerson') {
+        const personObject = {
+          name: newName,
+          phone: newPhone
+        }
+        if(window.confirm('This contact already exists with a different number, do you want to update it?')) {
+          const personID = persons.find(person => person.name === newName).id
+          console.log(personID)
+          personService
+            .update(personID, personObject)
+            .then(returnedPerson => {
+              setPersons(persons.map(person => person.id !== personID ? person : returnedPerson))
+              setAllPersons(allPersons.map(person => person.id !== personID ? person : returnedPerson))
+            })
+            .catch(error => {
+              alert('Error: ' + error)
+            })
+        }
       } else {
         alert(handleCheckNamePhone());
       }
@@ -48,9 +72,12 @@ const App = () => {
 
   const handleCheckNamePhone = (event) => {
     var errorMessage = 'ok';
+    console.log('hola')
 
-    if((persons.some(persons => persons.name === newName)) && (persons.some(persons => persons.phone === newPhone))) {
+    if(persons.some(person => person.name === newName && person.phone === newPhone)) {
       errorMessage = "The contact " + newName + " with phone number " + newPhone + " is already added to phonebook"
+    } else if(persons.some(persons => persons.name === newName && persons.phone !== newPhone)) {
+      errorMessage = "updatePerson"
     } else if(persons.some(persons => persons.name === newName)) {
       errorMessage = newName + " is already added to phonebook"
     } else if(persons.some(persons => persons.phone === newPhone)) {
@@ -87,6 +114,20 @@ const App = () => {
     }
   } 
 
+  const handleRemove = (id) => {
+    if(window.confirm('¿Seguro que quieres eliminarlo?')) {
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+          setAllPersons(allPersons.filter(person => person.id !== id))
+        })
+        .catch(error => {
+          console.log('Error al eliminar', error)
+        })
+    }
+  }
+
   const filterName = (event) => {
     console.log(event.target.value)
   }
@@ -98,7 +139,7 @@ const App = () => {
       <Header text='Add a new'/>
       <PersonForm submit={addName} nameVal={newName} nameHandle={handleNameChange} phoneVal={newPhone} phoneHandle={handlePhoneChange} />
       <Header text='Numbers'/>
-      <Persons persons={persons} />
+      <Persons persons={persons} handleRemove={handleRemove} />
     </div>
   )
 }
