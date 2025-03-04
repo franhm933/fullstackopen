@@ -5,6 +5,7 @@ import Filter from './components/Filter'
 import PersonForm from './components/PersonForm';
 import Header from './components/Header';
 import personService from './services/person.js'
+import Notification from './components/Notification.jsx';
 
 const App = () => {
   const [allPersons, setAllPersons] = useState([]);
@@ -14,6 +15,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [newSearch, setNewSearch] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState(null)
+  const [notificationType, setNotificationType] = useState('success')
 
   useEffect(() => {
     console.log('effect')
@@ -40,6 +43,7 @@ const App = () => {
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
           setAllPersons(persons.concat(returnedPerson))
+          updateNotification('Person ' + newName + ' added to phonebook')
           setNewName('')
           setNewPhone('')
         })
@@ -51,23 +55,33 @@ const App = () => {
         }
         if(window.confirm('This contact already exists with a different number, do you want to update it?')) {
           const personID = persons.find(person => person.name === newName).id
-          console.log(personID)
           personService
             .update(personID, personObject)
             .then(returnedPerson => {
               setPersons(persons.map(person => person.id !== personID ? person : returnedPerson))
               setAllPersons(allPersons.map(person => person.id !== personID ? person : returnedPerson))
+              updateNotification(newName + ' has been updated (phone)')
+              setNewName('')
+              setNewPhone('')
             })
             .catch(error => {
-              alert('Error: ' + error)
+              updateNotification('Error: ' + error, 'error')
             })
         }
       } else {
-        alert(handleCheckNamePhone());
+        updateNotification(handleCheckNamePhone(), 'error')
       }
     } else {
-      alert('Some field is not filled');
+      updateNotification('Some field is not filled', 'error')
     }
+  }
+
+  const updateNotification = (text, type = 'success') => {
+    setNotificationMessage(text)
+    setNotificationType(type)
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
   }
 
   const handleCheckNamePhone = (event) => {
@@ -135,6 +149,7 @@ const App = () => {
   return (
     <div>
       <Header text='Phonebook'/>
+      <Notification message ={notificationMessage} type={notificationType}/>
       <Filter search={newSearch} handle={handleSearchChange}/>
       <Header text='Add a new'/>
       <PersonForm submit={addName} nameVal={newName} nameHandle={handleNameChange} phoneVal={newPhone} phoneHandle={handlePhoneChange} />
