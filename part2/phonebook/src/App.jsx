@@ -80,7 +80,7 @@ const App = () => {
     setNotificationMessage(text)
     setNotificationType(type)
     setTimeout(() => {
-      setErrorMessage(null)
+      setNotificationMessage(null)
     }, 5000)
   }
 
@@ -130,6 +130,9 @@ const App = () => {
 
   const handleRemove = (id) => {
     if(window.confirm('¿Seguro que quieres eliminarlo?')) {
+
+      const person = persons.find(p => p.id === id)
+
       personService
         .remove(id)
         .then(() => {
@@ -137,7 +140,10 @@ const App = () => {
           setAllPersons(allPersons.filter(person => person.id !== id))
         })
         .catch(error => {
-          console.log('Error al eliminar', error)
+          //console.log('Error al eliminar', error)
+          updateNotification( `Information of '${person.name}' was already deleted from server`, 'error')
+          setPersons(persons.filter(person => person.id !== id))
+          setAllPersons(allPersons.filter(person => person.id !== id))
         })
     }
   }
