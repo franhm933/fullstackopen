@@ -1,0 +1,6 @@
+.finder {
+  display: flex;
+}
+.finder input {
+  margin-left: 15px;
+}
