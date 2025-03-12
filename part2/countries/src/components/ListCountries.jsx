@@ -1,4 +1,5 @@
-const ListCountries = ({countries, search, searchLength}) => {
+import CountryInfo from "./CountryInfo"
+const ListCountries = ({countries, search, searchLength, handleShow}) => {
     console.log(countries)
     console.log(search)
     console.log('length: ', searchLength) 
@@ -14,23 +15,10 @@ const ListCountries = ({countries, search, searchLength}) => {
         <>
             
             
-            {searchLength == 1 ? (
-                <div>
-                    <h2>{countries[0].name.common}</h2>
-                    <p>Capital: {countries[0].capital}</p>
-                    <p>Area: {countries[0].area}</p>
-                    <h3>Languages</h3>
-                    <ul>
-                        {Object.values(countries[0].languages).map(language => 
-                            <li key={language}>{language}</li>
-                        )}
-                    </ul>
-                    <img width="300" src={countries[0].flags.svg} alt={countries[0].flags.alt} />
-                </div>
-            ) : searchLength <= 10 && searchLength > 1 ? (
+            {searchLength <= 10 && searchLength > 1 ? (
                 <ul className="listCountries">
                     {countries.map(country => 
-                        <li key={country.name.common}>{country.name.common}</li>
+                        <li key={country.name.common}>{country.name.common} <button onClick={() => handleShow(country)}>Show</button></li>
                     )}
                 </ul>
             ) : (
