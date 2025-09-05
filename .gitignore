@@ -1,0 +1,19 @@
+# Dependencias
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Entornos
+.env
+.env.test
+.env.local
+.env.*.local
+
+# Cache de Node
+.pnpm-store/
+.npm/
+.cache/
