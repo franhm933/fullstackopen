@@ -5,6 +5,16 @@ const morgan = require('morgan')
 app.use(express.json())
 app.use(morgan('tiny'))
 
+// Token personalizado para el body
+morgan.token('body', (req) => {
+  return req.method === 'POST' ? JSON.stringify(req.body) : ''
+})
+
+// Middleware con el formato exacto
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms :body')
+)
+
 let persons = [
     { 
       "id": 1,
@@ -30,6 +40,7 @@ let persons = [
 
 app.get('/api/persons', (request, response) => {
     response.json(persons)
+    morgan.token('info')
 })
 
 app.get('/api/info', (request, response) => {
