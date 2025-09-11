@@ -1,47 +1,12 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const mongoose = require('mongoose')
+const Note = require('./models/note')
 
 app.use(express.json()) // json-parser para acceder a datos facilmente
 app.use(cors())
 app.use(express.static('dist'))
-
-// MongoDB
-const password = process.argv[2]
-
-// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
-const url =
-  `mongodb+srv://fullstack:${password}@cluster0.o1opl.mongodb.net/?retryWrites=true&w=majority`
-
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
-
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-})
-
-const Note = mongoose.model('Note', noteSchema)
-
-// Notas
-let notes = [
-    {
-    id: 1,
-    content: "HTML is easy",
-    important: true
-    },
-    {
-    id: 2,
-    content: "Browser can execute only JavaScript",
-    important: false
-    },
-    {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol",
-    important: true
-    }
-]
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
@@ -49,40 +14,34 @@ app.get('/', (request, response) => {
 
 app.get('/api/notes', (request, response) => {
   Note.find({}).then(notes => {
-    response.json(notes)
+    const formattedNotes = notes.map(note => note.toJSON());
+    response.json(formattedNotes);
   })
 })
 app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(note => {
-    return note.id === id
-  })
-  console.log(note)
-  if(note) {
+  Note.findById(request.params.id).then(note => {
     response.json(note)
-  } else {
-    response.status(404).end()
-  }
+  })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
-  response.status(204).end()
+  // const id = Number(request.params.id)
+  // notes = notes.filter(note => note.id !== id)
+  // response.status(204).end()
 })
 
 // Nueva nota
-const generateId = () => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => n.id))
-    : 0
-  return maxId + 1
-}
+// const generateId = () => {
+//   const maxId = notes.length > 0
+//     ? Math.max(...notes.map(n => n.id))
+//     : 0
+//   return maxId + 1
+// }
 
 app.post('/api/notes', (request, response) => {
   const body = request.body
 
-  if (!body.content) {
+  if (body.content === undefined) {
     return response.status(400).json({ 
       error: 'content missing' 
     })
@@ -91,11 +50,11 @@ app.post('/api/notes', (request, response) => {
   const note = {
     content: body.content,
     important: Boolean(body.important) || false,
-    id: generateId(),
   }
 
-  notes = notes.concat(note)
-  response.json(note)
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
 })
 
 const PORT = process.env.PORT || 3001
