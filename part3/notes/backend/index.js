@@ -3,11 +3,11 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const Note = require('./models/note')
+const logger = require('./utils/logger')
 
 app.use(express.static('dist'))
 app.use(express.json()) // json-parser para acceder a datos facilmente
 app.use(cors())
-app.use(logger)
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
@@ -74,13 +74,12 @@ app.post('/api/notes', (request, response) => {
     })
   }
 
-  const note = {
+  const note = new Note ({
     content: body.content,
     important: Boolean(body.important) || false,
-  }
+  })
 
-  note
-  .save()
+  note.save()
   .then(savedNote => {
     response.json(savedNote)
   })
