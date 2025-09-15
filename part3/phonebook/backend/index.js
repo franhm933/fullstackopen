@@ -3,7 +3,9 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const Person = require('./models/person')
+const logger = require('./utils/logger')
 
+app.use(express.static('dist'))
 app.use(express.json())
 app.use(morgan('tiny'))
 
@@ -58,10 +60,12 @@ app.get('/api/persons/:id', (request, response) => {
   })
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    // const id = Number(request.params.id)
-    // persons = persons.filter( person => person.id !== id)
-    // response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Note.findByIdAndDelete(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 // Nueva persona
@@ -73,31 +77,63 @@ app.delete('/api/persons/:id', (request, response) => {
 // }
 
 app.post('/api/persons', (request, response) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  if (!body.name) {
-      return response.status(400).json({ 
-          error: 'name missing' 
-      })
-  }
-  if (!body.number) {
-      return response.status(400).json({ 
-          error: 'number missing' 
-      })
+  if (!name || !number) {
+    return response.status(400).json({ error: 'name or number missing' })
   }
 
-  const person = new Person ({
-    name : body.name,
-    number : body.number
+  Person.findOne ({ name })
+  .then (person => {
+    if(person){
+      Person.findByIdAndUpdate (
+        person._id,
+        { number },
+        { new: true, runValidators: true, context: 'query' }
+      )
+      .then(updatedPerson => {
+        response.json(updatedPerson)
+      })
+      .catch(error => next(error))
+    } else {
+      const newPerson = new Person ({
+        name : name,
+        number : number
+      })
+      newPerson
+      .save()
+      .then(savedPerson => {
+        response.json(savedPerson)
+      })
+      .catch(error => next(error))
+    }
   })
-
- person.save().then(savedPerson => {
-  response.json(savedPerson)
- })
+ 
     
 })
 
+//Errores
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
+// controlador de solicitudes con endpoint desconocido
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+// controlador de solicitudes que resulten en errores
+app.use(errorHandler)
+
+// Puerto
 const PORT = 3001
 app.listen(PORT)
 console.log(`Server running on port ${PORT}`)

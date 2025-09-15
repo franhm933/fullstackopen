@@ -4,9 +4,9 @@ const app = express()
 const cors = require('cors')
 const Note = require('./models/note')
 
+app.use(express.static('dist'))
 app.use(express.json()) // json-parser para acceder a datos facilmente
 app.use(cors())
-app.use(express.static('dist'))
 app.use(logger)
 
 app.get('/', (request, response) => {
@@ -30,7 +30,7 @@ app.get('/api/notes/:id', (request, response, next) => {
   .catch(error => next(error))
 })
 
-app.delete('/api/notes/:id', (request, response) => {
+app.delete('/api/notes/:id', (request, response, next) => {
   Note.findByIdAndDelete(request.params.id)
   .then(result => {
     response.status(204).end()
@@ -79,7 +79,7 @@ app.post('/api/notes', (request, response) => {
     response.json(savedNote)
   })
 })
-
+//Errores
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
